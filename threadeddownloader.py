@@ -12,7 +12,10 @@ threads=[]
 
 def download_file(url,local_filename):
     if not os.path.isdir(local_filename):
-        r = requests.get(url, stream=True)
+        try:
+            r = requests.get(url, stream=True)
+        except:
+            return None
         # Total size in bytes.
         total_size = int(r.headers.get('content-length', 0))
         block_size = 1024 #1 Kibibyte
@@ -32,12 +35,15 @@ def wget(line):
     a = line.find("|")
     name = line[0:a-1]
     url = line[a+1:len(line)]
-    if "https" not in url:
+    if "https://" not in url:
         url = url.replace("//","https://")
     print(name)
     print(url)
-    download_file(url,"./downloaded/"+name+".mp4")
-    uploadDrive("./downloaded/"+name+".mp4")
+    a = download_file(url,"./downloaded/"+name+".mp4")
+    if not a:
+        return None
+    else:
+        uploadDrive("./downloaded/"+name+".mp4")
 
 def download(src):
     source = open(src,"r")
