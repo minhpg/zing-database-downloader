@@ -32,6 +32,8 @@ def wget(line):
     a = line.find("|")
     name = line[0:a-1]
     url = line[a+1:len(line)]
+    if "https" not in url:
+        url = url.replace("//","https://")
     print(name)
     print(url)
     download_file(url,"./downloaded/"+name+".mp4")
