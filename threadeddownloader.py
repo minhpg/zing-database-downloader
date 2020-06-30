@@ -47,6 +47,7 @@ def wget(line):
 
 def download(src):
     source = open(src,"r")
+    processes=[]
     while True:
         line = source.readline()
         if not line:
@@ -54,6 +55,7 @@ def download(src):
         else:
             print(line)
             processes.append(line)
+    threads=[]
     for i in processes:
         t = threading.Thread(target=wget,args=[i])
         t.start()
@@ -61,11 +63,17 @@ def download(src):
     for thread in threads:
         thread.join()
 
+def uploadDrive(file_path):
+    file1 = drive.CreateFile({'title': file_path.replace("./downloaded/","")})
+    file1.SetContentFile(file_path)
+    file1.Upload()
+    print('title: %s, id: %s' % (file1['title'], file1['id']))
+    os.remove(file_path)
+    file1 = None
+
+
 def create_credential():
     auth_and_save_credential()
-
-
-# Authentication + token creation
 def create_drive_manager():
     gAuth = GoogleAuth()
     typeOfAuth = None
@@ -75,8 +83,6 @@ def create_drive_manager():
     authorize_from_credential(gAuth, bool)
     drive: GoogleDrive = GoogleDrive(gAuth)
     return drive
-
-
 def authorize_from_credential(gAuth, isSaved):
     if not isSaved: #no credential.txt wanted
         auth_no_save(gAuth)
@@ -90,23 +96,15 @@ def authorize_from_credential(gAuth, isSaved):
         gAuth.SaveCredentialsFile("credentials.txt")
     gAuth.Authorize()
     print("Đã được cấp quyền GoogleAPI!")
-
 def auth_and_save_credential():
     gAuth = GoogleAuth()
     gAuth.LocalWebserverAuth()
     gAuth.SaveCredentialsFile("credentials.txt")
 def auth_no_save(gAuth):
     gAuth.LocalWebserverAuth()
-# Create GoogleDrive instance with authenticated GoogleAuth instance.
 
 
-def uploadDrive(file_path):
-    file1 = drive.CreateFile({'title': file_path.replace("./downloaded/","")})
-    file1.SetContentFile(file_path)
-    file1.Upload()
-    print('title: %s, id: %s' % (file1['title'], file1['id']))
-    os.remove(file_path)
-    file1 = None
+
 
 
 drive = create_drive_manager()
@@ -114,5 +112,7 @@ links = os.listdir("links")
 print(links)
 for i in links:
     download("links/"+i)
+    processes=[]
+    threads=[]
     links.remove(i)
     os.remove("links/"+i)
