@@ -114,3 +114,5 @@ links = os.listdir("links")
 print(links)
 for i in links:
     download("links/"+i)
+    links.remove(i)
+    os.remove("links/"+i)
