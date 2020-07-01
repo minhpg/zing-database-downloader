@@ -50,7 +50,7 @@ def wget(line):
 
 def download(src,name):
     source = open(src,"r")
-    folder_id = createfolder(name)
+    createfolder(name)
     processes=[]
     while True:
         line = source.readline()
@@ -78,8 +78,9 @@ def uploadDrive(file_path):
 def createfolder(name):
     folder = drive.CreateFile({'title' : name.replace(".txt",""), 'mimeType' : 'application/vnd.google-apps.folder'})
     folder.Upload()
-    print('title: %s, id: %s' % (folder['title'], folder['id']))
-    return folder['id']
+
+    folder_id = folder['id']
+    print(folder_id)
 
 def create_credential():
     auth_and_save_credential()
