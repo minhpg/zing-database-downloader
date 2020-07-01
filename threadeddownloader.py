@@ -61,13 +61,13 @@ def download(src,name):
             processes.append(line)
     threads=[]
     for i in processes:
-        t = threading.Thread(target=wget,args=[i,folder_id])
+        t = threading.Thread(target=wget,args=[i])
         t.start()
         threads.append(t)
     for thread in threads:
         thread.join()
 
-def uploadDrive(file_path,folder_id):
+def uploadDrive(file_path):
     file1 = drive.CreateFile({'title': file_path.replace("./downloaded/",""),'parents': [{'id': folder_id}]})
     file1.SetContentFile(file_path)
     file1.Upload()
@@ -79,7 +79,7 @@ def createfolder(name):
     folder = drive.CreateFile({'title' : name.replace(".txt",""), 'mimeType' : 'application/vnd.google-apps.folder'})
     folder.Upload()
     print('title: %s, id: %s' % (folder['title'], folder['id']))
-    return folder['id']
+    folder_id = folder['id']
 
 def create_credential():
     auth_and_save_credential()
@@ -123,5 +123,6 @@ for i in links:
     download("links/"+i,i)
     processes=[]
     threads=[]
+    folder_id = None
     links.remove(i)
     os.remove("links/"+i)
