@@ -31,7 +31,7 @@ def download_file(url,local_filename):
     else:
         return local_filename
 
-def wget(line,folder_id):
+def wget(line):
     a = line.find("|")
     print(a)
     name = line[0:a-1]
@@ -79,7 +79,7 @@ def createfolder(name):
     folder = drive.CreateFile({'title' : name.replace(".txt",""), 'mimeType' : 'application/vnd.google-apps.folder'})
     folder.Upload()
     print('title: %s, id: %s' % (folder['title'], folder['id']))
-    folder_id = folder['id']
+    return folder['id']
 
 def create_credential():
     auth_and_save_credential()
