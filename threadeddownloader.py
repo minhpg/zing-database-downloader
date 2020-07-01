@@ -31,12 +31,15 @@ def download_file(url,local_filename):
     else:
         return local_filename
 
-def wget(line):
+def wget(line,folder_id):
     a = line.find("|")
+    print(a)
     name = line[0:a-1]
     url = line[a+1:len(line)]
     if "https://" not in url:
         url = url.replace("//","https://")
+        if "|" in url:
+            url = url.replace(url[0:url.find("|")+1],"")
     print(name)
     print(url)
     a = download_file(url,"./downloaded/"+name+".mp4")
@@ -45,8 +48,9 @@ def wget(line):
     else:
         uploadDrive("./downloaded/"+name+".mp4")
 
-def download(src):
+def download(src,name):
     source = open(src,"r")
+    folder_id = createfolder(name)
     processes=[]
     while True:
         line = source.readline()
@@ -57,20 +61,25 @@ def download(src):
             processes.append(line)
     threads=[]
     for i in processes:
-        t = threading.Thread(target=wget,args=[i])
+        t = threading.Thread(target=wget,args=[i,folder_id])
         t.start()
         threads.append(t)
     for thread in threads:
         thread.join()
 
-def uploadDrive(file_path):
-    file1 = drive.CreateFile({'title': file_path.replace("./downloaded/","")})
+def uploadDrive(file_path,folder_id):
+    file1 = drive.CreateFile({'title': file_path.replace("./downloaded/",""),'parents': [{'id': folder_id}]})
     file1.SetContentFile(file_path)
     file1.Upload()
     print('title: %s, id: %s' % (file1['title'], file1['id']))
     os.remove(file_path)
     file1 = None
 
+def createfolder(name):
+    folder = drive.CreateFile({'title' : name.replace(".txt",""), 'mimeType' : 'application/vnd.google-apps.folder'})
+    folder.Upload()
+    print('title: %s, id: %s' % (folder['title'], folder['id']))
+    return folder['id']
 
 def create_credential():
     auth_and_save_credential()
@@ -111,7 +120,7 @@ drive = create_drive_manager()
 links = os.listdir("links")
 print(links)
 for i in links:
-    download("links/"+i)
+    download("links/"+i,i)
     processes=[]
     threads=[]
     links.remove(i)
