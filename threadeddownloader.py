@@ -31,7 +31,7 @@ def download_file(url,local_filename):
     else:
         return local_filename
 
-def wget(line):
+def wget(line,folder_id):
     a = line.find("|")
     print(a)
     name = line[0:a-1]
@@ -46,11 +46,11 @@ def wget(line):
     if not a:
         return None
     else:
-        uploadDrive("./downloaded/"+name+".mp4")
+        uploadDrive("./downloaded/"+name+".mp4",folder_id)
 
 def download(src,name):
     source = open(src,"r")
-    createfolder(name)
+    folder_id = createfolder(name)
     processes=[]
     while True:
         line = source.readline()
@@ -61,13 +61,13 @@ def download(src,name):
             processes.append(line)
     threads=[]
     for i in processes:
-        t = threading.Thread(target=wget,args=[i])
+        t = threading.Thread(target=wget,args=[i,folder_id])
         t.start()
         threads.append(t)
     for thread in threads:
         thread.join()
 
-def uploadDrive(file_path):
+def uploadDrive(file_path,folder_id):
     file1 = drive.CreateFile({'title': file_path.replace("./downloaded/",""),'parents': [{'id': folder_id}]})
     file1.SetContentFile(file_path)
     file1.Upload()
@@ -78,9 +78,8 @@ def uploadDrive(file_path):
 def createfolder(name):
     folder = drive.CreateFile({'title' : name.replace(".txt",""), 'mimeType' : 'application/vnd.google-apps.folder'})
     folder.Upload()
-
     folder_id = folder['id']
-    print(folder_id)
+    return folder_id
 
 def create_credential():
     auth_and_save_credential()
