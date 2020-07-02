@@ -146,7 +146,7 @@ def uploadDrive(file_path,folder_id):
     os.remove(file_path)
     file1 = None
 def createfolder(name):
-    folder = drive.CreateFile({'title' : name.replace(".txt",""), 'mimeType' : 'application/vnd.google-apps.folder'})
+    folder = drive.CreateFile({'title' : name.replace(".txt",""), 'mimeType' : 'application/vnd.google-apps.folder','parents': [{'id': "0AI4jJ9JnisvXUk9PVA"}]})
     folder.Upload()
     folder_id = folder['id']
     return folder_id
