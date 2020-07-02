@@ -25,8 +25,11 @@ def getallmovie(link):
                 if not filter9.search(a) and not filter10.search(a) and not filter11.search(a) and not filter12.search(a) and not filter13.search(a):
                     movie_list.append("https://tv.zing.vn"+a)
     movie_list = list(dict.fromkeys(movie_list))
-    movie_list.remove("https://tv.zing.vn/")
-    return movie_list
+    if "https://tv.zing.vn/" in movie_list:
+        movie_list.remove("https://tv.zing.vn/")
+        return movie_list
+    else:
+        return movie_list
 def get(i):
     print(i)
     a = geteps(i)
@@ -146,7 +149,7 @@ def uploadDrive(file_path,folder_id):
     os.remove(file_path)
     file1 = None
 def createfolder(name):
-    folder = drive.CreateFile({'title' : name.replace(".txt",""), 'mimeType' : 'application/vnd.google-apps.folder','parents': [{'id': "0AI4jJ9JnisvXUk9PVA"}]})
+    folder = drive.CreateFile({'title' : name.replace(".txt",""), 'mimeType' : 'application/vnd.google-apps.folder','parents': [{'id': "1UfkjCuMxzVarx5S4E06ar3oxf5ftEqD7"}]})
     folder.Upload()
     folder_id = folder['id']
     return folder_id
