@@ -7,31 +7,18 @@ from pydrive.auth import GoogleAuth
 from os import path
 from multiprocessing import Pool
 
+
 processes=[]
 threads=[]
 
 def download_file(url,local_filename):
-    if not os.path.isdir(local_filename):
-        try:
-            r = requests.get(url, stream=True)
-        except:
-            return None
-        # Total size in bytes.
-        total_size = int(r.headers.get('content-length', 0))
-        block_size = 1024 #1 Kibibyte
-        t=tqdm(total=total_size, unit='iB', unit_scale=True)
-        with open(local_filename, 'wb') as f:
-            for data in r.iter_content(block_size):
-                t.update(len(data))
-                f.write(data)
-        t.close()
-        return local_filename
-        if total_size != 0 and t.n != total_size:
-            print("ERROR, something went wrong")
-    else:
-        return local_filename
+    os.system("wget -O '"+local_filename+"' "+url)
+    return local_filename
 
-def wget(line,folder_id,drive):
+def wget(i):
+    drive = create_drive_manager()
+    line = i[0]
+    folder_id = i[1]
     a = line.find("|")
     print(a)
     name = line[0:a-1]
@@ -49,9 +36,8 @@ def wget(line,folder_id,drive):
         uploadDrive("./downloaded/"+name+".mp4",folder_id,drive)
 
 def download(src,name):
-    drive = create_drive_manager()
     source = open(src,"r")
-    folder_id = createfolder(name,drive)
+    folder_id = createfolder(name)
     processes=[]
     while True:
         line = source.readline()
@@ -59,11 +45,14 @@ def download(src,name):
             break
         else:
             print(line)
-            processes.append(line)
+            processes.append([line,folder_id])
     threads=[]
-    for i in processes:
-        wget(i,folder_id,drive)
-def uploadDrive(file_path,folder_id,drive):
+    p = Pool(20)
+    p.map(wget,processes)
+    p.close()
+    p.join()
+
+def uploadDrive(file_path,folder_id):
     file1 = drive.CreateFile({'title': file_path.replace("./downloaded/",""),'parents': [{'id': folder_id}]})
     file1.SetContentFile(file_path)
     file1.Upload()
@@ -71,7 +60,7 @@ def uploadDrive(file_path,folder_id,drive):
     os.remove(file_path)
     file1 = None
 
-def createfolder(name,drive):
+def createfolder(name):
     folder = drive.CreateFile({'title' : name.replace(".txt",""), 'mimeType' : 'application/vnd.google-apps.folder','parents': [{'id': "1vhhreNp0ORUHo-dOUM3ybm50iAwLtGCB"}]})
     folder.Upload()
     folder_id = folder['id']
@@ -107,18 +96,15 @@ def auth_and_save_credential():
     gAuth.SaveCredentialsFile("credentials.txt")
 def auth_no_save(gAuth):
     gAuth.LocalWebserverAuth()
-def threading(i):
-    download("links/"+i,i)
-    processes=[]
-    threads=[]
-    folder_id = None
-    links.remove(i)
-    os.remove("links/"+i)
 
 if __name__ == '__main__':
+    drive = create_drive_manager()
     links = os.listdir("links")
     print(links)
-    p = Pool(3)
-    p.map(threading,links)
-    p.close()
-    p.join
+    for i in links:
+        download("links/"+i,i)
+        processes=[]
+        threads=[]
+        folder_id = None
+        links.remove(i)
+        os.remove("links/"+i)

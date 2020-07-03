@@ -11,29 +11,22 @@ processes=[]
 threads=[]
 
 def download_file(url,local_filename):
-    if not os.path.isdir(local_filename):
-        try:
-            r = requests.get(url, stream=True)
-        except:
-            return None
-        # Total size in bytes.
-        total_size = int(r.headers.get('content-length', 0))
-        block_size = 1024 #1 Kibibyte
-        t=tqdm(total=total_size, unit='iB', unit_scale=True)
-        with open(local_filename, 'wb') as f:
-            for data in r.iter_content(block_size):
-                t.update(len(data))
-                f.write(data)
-        t.close()
-        return local_filename
-        if total_size != 0 and t.n != total_size:
-            print("ERROR, something went wrong")
-    else:
-        return local_filename
+    r = requests.get(url, stream=True)
+    # Total size in bytes.
+    total_size = int(r.headers.get('content-length', 0))
+    block_size = 1024 #1 Kibibyte
+    t=tqdm(total=total_size, unit='iB', unit_scale=True)
+    with open(local_filename, 'wb') as f:
+        for data in r.iter_content(block_size):
+            t.update(len(data))
+            f.write(data)
+    t.close()
+    if total_size != 0 and t.n != total_size:
+        print("ERROR, something went wrong")
+    return local_filename
 
 def wget(line,folder_id):
     a = line.find("|")
-    print(a)
     name = line[0:a-1]
     url = line[a+1:len(line)]
     if "https://" not in url:
@@ -57,10 +50,10 @@ def download(src,name):
         if not line:
             break
         else:
-            print(line)
             processes.append(line)
+
     for i in processes:
-        wget(i)
+        wget(i,folder_id)
 
 def uploadDrive(file_path,folder_id):
     file1 = drive.CreateFile({'title': file_path.replace("./downloaded/",""),'parents': [{'id': folder_id}]})
