@@ -5,7 +5,7 @@ from tqdm import tqdm
 from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
 from os import path
-
+from multiprocessing import Pool
 
 processes=[]
 threads=[]
@@ -31,7 +31,7 @@ def download_file(url,local_filename):
     else:
         return local_filename
 
-def wget(line,folder_id):
+def wget(line,folder_id,drive):
     a = line.find("|")
     print(a)
     name = line[0:a-1]
@@ -46,11 +46,12 @@ def wget(line,folder_id):
     if not a:
         return None
     else:
-        uploadDrive("./downloaded/"+name+".mp4",folder_id)
+        uploadDrive("./downloaded/"+name+".mp4",folder_id,drive)
 
 def download(src,name):
+    drive = create_drive_manager()
     source = open(src,"r")
-    folder_id = createfolder(name)
+    folder_id = createfolder(name,drive)
     processes=[]
     while True:
         line = source.readline()
@@ -61,13 +62,8 @@ def download(src,name):
             processes.append(line)
     threads=[]
     for i in processes:
-        t = threading.Thread(target=wget,args=[i,folder_id])
-        t.start()
-        threads.append(t)
-    for thread in threads:
-        thread.join()
-
-def uploadDrive(file_path,folder_id):
+        wget(i,folder_id,drive)
+def uploadDrive(file_path,folder_id,drive):
     file1 = drive.CreateFile({'title': file_path.replace("./downloaded/",""),'parents': [{'id': folder_id}]})
     file1.SetContentFile(file_path)
     file1.Upload()
@@ -75,7 +71,7 @@ def uploadDrive(file_path,folder_id):
     os.remove(file_path)
     file1 = None
 
-def createfolder(name):
+def createfolder(name,drive):
     folder = drive.CreateFile({'title' : name.replace(".txt",""), 'mimeType' : 'application/vnd.google-apps.folder','parents': [{'id': "1vhhreNp0ORUHo-dOUM3ybm50iAwLtGCB"}]})
     folder.Upload()
     folder_id = folder['id']
@@ -111,15 +107,18 @@ def auth_and_save_credential():
     gAuth.SaveCredentialsFile("credentials.txt")
 def auth_no_save(gAuth):
     gAuth.LocalWebserverAuth()
-
-
-drive = create_drive_manager()
-links = os.listdir("links")
-print(links)
-for i in links:
+def threading(i):
     download("links/"+i,i)
     processes=[]
     threads=[]
     folder_id = None
     links.remove(i)
     os.remove("links/"+i)
+
+if __name__ == '__main__':
+    links = os.listdir("links")
+    print(links)
+    p = Pool(3)
+    p.map(threading,links)
+    p.close()
+    p.join
