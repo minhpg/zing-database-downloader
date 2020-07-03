@@ -112,17 +112,20 @@ def auth_and_save_credential():
 def auth_no_save(gAuth):
     gAuth.LocalWebserverAuth()
 
-
-
-
-
-drive = create_drive_manager()
-links = os.listdir("links")
-print(links)
-for i in links:
+def multiprocess(i):
     download("links/"+i,i)
     processes=[]
     threads=[]
     folder_id = None
     links.remove(i)
     os.remove("links/"+i)
+
+
+if __name__ == '__main__':
+    drive = create_drive_manager()
+    links = os.listdir("links")
+    print(links)
+    p = Pool(10)
+    p.map(multiprocess,links)
+    p.close()
+    p.join()
